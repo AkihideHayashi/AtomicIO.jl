@@ -45,11 +45,11 @@ function symbol2element(el)
     end
 end
 
-function atomic_number(s)
+function atomic_number(s::String)
     findfirst(x->x==symbol2element(s), periodic_table)
 end
 
-function atomic_symbol(n)
+function atomic_symbol(n::Int64)
     periodic_table[n]
 end
 end

@@ -3,7 +3,7 @@ include("Common.jl")
 export write_xyz, read_xyz
 
 
-function write_xyz(fp::IOStream, symbols, positions)
+function write_xyz(fp::IOStream, symbols::Vector{String}, positions::Vector{Matrix{Float64}})
     for pos in positions
         write(fp, "$(size(pos, 1))\n\n")
         for i in 1:length(symbols)
@@ -13,8 +13,8 @@ function write_xyz(fp::IOStream, symbols, positions)
     end
 end
 
-function write_xyz(path::String, symbols, positions)
-    open(path) do fp
+function write_xyz(path::String, symbols::Vector{String}, positions::Vector{Matrix{Float64}})
+    open(path, "w") do fp
         write_xyz(fp, symbols, positions)
     end
 end
@@ -22,25 +22,28 @@ end
 function read_a_xyz(fp::IOStream)
     n = fp |> readline |> x -> parse(Int64, x)
     readline(fp)
-    symbols = Vector{String}()
-    coordinates = []
+    symbols = fill("", n)
+    coordinates = fill(0.0, (n, 3))
     for i in 1:n
         line = fp |> readline |> split
-        push!(symbols, String(line[1]))
-        push!(coordinates, parse.(Float64, line[2:end]))
+        symbols[i] = String(line[1])
+        coordinates[i, :] = parse.(Float64, line[2:end])
     end
-    symbols, hcat(coordinates...)'
+    symbols, coordinates
 end
 
 function read_xyz(fp::IOStream)
-    mols = []
+    symbols::Vector{Vector{String}} = []
+    coordinates::Vector{Matrix{Float64}} = []
     while true
-        push!(mols, read_a_xyz(fp))
+        s, c = read_a_xyz(fp)
+        push!(symbols, s)
+        push!(coordinates, c)
         if eof(fp)
             break
         end
     end
-    mols
+    symbols, coordinates
 end
 
 function read_xyz(path::String)
